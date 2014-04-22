@@ -1,0 +1,39 @@
+
+<div class="col-sm-3 col-md-2 sidebar">
+  <ul class="nav nav-sidebar">
+    <li class="active"><a href="#">Signup</a></li>
+    <li><a href="#">Logout</a></li>
+    <li><a href="#">My profile</a></li>
+    <li><a href="#">Search</a></li>
+  </ul>
+  <online></online>
+</div>
+
+
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+  <chat></chat>
+</div>
+
+
+<script type="text/ng-template" id="customTemplate.html">
+  <a>
+    <i class="emoji emoji_{{match.label.replace(':', '').replace(':', '')}}">{{match.label}}</i>
+    <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
+  </a>
+</script>
+
+
+
+
+
+<div id="footer">
+  <div class="col-md-10 col-md-offset-2">
+
+    <form class="form" role="form" ng-submit="sendMessage()">
+      <div class="form-group col-sm-6">
+        <input type="text" class="form-control" placeholder="Message.." ng-model="message" typeahead="emoji for emoji in emojis | filter:$viewValue:startsWith | limitTo:8" typeahead-template-url="customTemplate.html" />
+      </div>
+      <button type="submit" class="btn btn-default">Send</button>
+    </form>
+  </div>
+</div>

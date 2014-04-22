@@ -1,0 +1,10 @@
+{
+  "db": "awesome_chat",
+  "cookie": "cookie_name_for_awesome_chat",
+  "port": 3051,
+  "facebook": {
+    "clientID": 1234,
+    "clientSecret": "apisecret",
+    "callbackURL": "http://domain.com/auth/facebook/callback"
+  }
+}

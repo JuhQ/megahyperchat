@@ -1,0 +1,7 @@
+
+<ul class="nav nav-sidebar online-list">
+  <li><strong>Online ({{online.length}})</strong></li>
+  <li ng-repeat="user in online">
+    <a href=""><img ng-src="https://graph.facebook.com/{{user.id}}/picture" class="img-circle" /> {{user.name}}</a>
+  </li>
+</ul>
