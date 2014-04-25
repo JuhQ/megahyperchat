@@ -109,15 +109,17 @@ passport.use(new FacebookStrategy(settings.facebook, function(accessToken, refre
           hidden: true
         }
       });
-      Privacy.findOne({
+      return Privacy.findOne({
         id: data.id
-      }).exec(function(err, privacyData) {});
-      if (!privacyData) {
-        privacy = new Privacy({
-          id: data.id
-        });
-        return privacy.save(function() {});
-      }
+      }).exec(function(err, privacyData) {
+        var privacy;
+        if (!privacyData) {
+          privacy = new Privacy({
+            id: data.id
+          });
+          return privacy.save(function() {});
+        }
+      });
     } else {
       location = {
         name: (_ref = profile._json.location) != null ? _ref.name : void 0,
@@ -165,15 +167,21 @@ io.sockets.on('connection', function(socket) {
   socket.on('load-chat-history', function(data) {
     return socket.emit('chat-history', data);
   });
+  socket.on('load-online-list', function(data) {
+    return socket.emit('online-list', data);
+  });
   socket.on('message', function(data) {
     data.date = new Date();
-    return socket.emit('message', data);
+    socket.emit('message', data);
+    return socket.broadcast.emit('message', data);
   });
   socket.on('online', function(data) {
-    return socket.emit('online', data);
+    socket.emit('online', data);
+    return socket.broadcast.emit('online', data);
   });
   return socket.on('offline', function(data) {
-    return socket.emit('offline', data);
+    socket.emit('offline', data);
+    return socket.broadcast.emit('offline', data);
   });
 });
 

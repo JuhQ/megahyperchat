@@ -3,10 +3,11 @@ app.directive('chat', function(socketService, emojiService) {
     restrict: 'E',
     templateUrl: 'chat.html',
     link: function($scope, el, attrs) {
-      var fromRandom, i, _i,
+      var fromRandom, i, scrollhere, _i,
         _this = this;
       $scope.messages = [];
       $scope.emojis = emojiService.getList();
+      scrollhere = document.getElementById("scrollhere");
       $scope.startsWith = function(state, viewValue) {
         return state.substr(0, viewValue.length) === viewValue;
       };
@@ -24,7 +25,8 @@ app.directive('chat', function(socketService, emojiService) {
       }
       socketService.on('message', function(data) {
         $scope.messages.push(data);
-        return $scope.$apply();
+        $scope.$apply();
+        return scrollhere != null ? scrollhere.scrollIntoView() : void 0;
       });
       return $scope.sendMessage = function() {
         socketService.sendMessage({

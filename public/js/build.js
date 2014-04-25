@@ -22,10 +22,11 @@ app.run();
     restrict: 'E',
     templateUrl: 'chat.html',
     link: function($scope, el, attrs) {
-      var fromRandom, i, _i,
+      var fromRandom, i, scrollhere, _i,
         _this = this;
       $scope.messages = [];
       $scope.emojis = emojiService.getList();
+      scrollhere = document.getElementById("scrollhere");
       $scope.startsWith = function(state, viewValue) {
         return state.substr(0, viewValue.length) === viewValue;
       };
@@ -43,7 +44,8 @@ app.run();
       }
       socketService.on('message', function(data) {
         $scope.messages.push(data);
-        return $scope.$apply();
+        $scope.$apply();
+        return scrollhere != null ? scrollhere.scrollIntoView() : void 0;
       });
       return $scope.sendMessage = function() {
         socketService.sendMessage({
@@ -166,7 +168,7 @@ app.run();
   'use strict';
 
   $templateCache.put('chat.html',
-    "<div class=\"row placeholders\" ng-hide=\"true\"><div class=\"col-xs-5 col-sm-2 placeholder\" ng-repeat=\"i in getNumber(6) track by $index\"><img src=\"http://placekitten.com/100/100\" class=\"img-responsive img-circle\" alt=\"Generic thumbnail\"><h4>Ahmed</h4><span class=\"text-muted\">Single, 27 years</span></div></div><h2>Chat</h2><div class=\"table-responsive\"><table class=\"table table-striped\"><tbody><tr ng-repeat=\"message in messages\"><td class=\"col-xs-2 col-sm-2 message-from\"><img ng-src=\"https://graph.facebook.com/{{message.from.id}}/picture\" class=\"img-circle\"> {{message.from.name}}</td><td class=\"col-xs-10 col-sm-10\"><message>{{message.message}}</message></td></tr></tbody></table></div>"
+    "<div class=\"row placeholders\" ng-hide=\"true\"><div class=\"col-xs-5 col-sm-2 placeholder\" ng-repeat=\"i in getNumber(6) track by $index\"><img src=\"http://placekitten.com/100/100\" class=\"img-responsive img-circle\" alt=\"Generic thumbnail\"><h4>Ahmed</h4><span class=\"text-muted\">Single, 27 years</span></div></div><h2>Chat</h2><div class=\"table-responsive\"><table class=\"table table-striped\"><tbody><tr ng-repeat=\"message in messages\"><td class=\"col-xs-2 col-sm-2 message-from\"><img ng-src=\"https://graph.facebook.com/{{message.from.id}}/picture\" class=\"img-circle\"> {{message.from.name}}</td><td class=\"col-xs-10 col-sm-10\"><message>{{message.message}}</message></td></tr></tbody></table><div id=\"scrollhere\"></div></div>"
   );
 
 

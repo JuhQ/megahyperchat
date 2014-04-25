@@ -99,7 +99,7 @@ passport.use new FacebookStrategy settings.facebook, (accessToken, refreshToken,
           .findOne({
             id: data.id
           })
-            .exec (err, privacyData) ->
+          .exec (err, privacyData) ->
             if !privacyData
               privacy = new Privacy(id: data.id)
               privacy.save ->
@@ -147,15 +147,21 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'load-chat-history', (data) ->
     socket.emit 'chat-history', data
 
+  socket.on 'load-online-list', (data) ->
+    socket.emit 'online-list', data
+
   socket.on 'message', (data) ->
     data.date = new Date()
     socket.emit 'message', data
+    socket.broadcast.emit 'message', data
 
   socket.on 'online', (data) ->
     socket.emit 'online', data
+    socket.broadcast.emit 'online', data
 
   socket.on 'offline', (data) ->
     socket.emit 'offline', data
+    socket.broadcast.emit 'offline', data
 
 
 
