@@ -5,6 +5,7 @@ routes = require("./routes")
 passport = require("passport")
 FacebookStrategy = require("passport-facebook").Strategy
 mongoose = require('mongoose')
+_ = require('lodash')
 MongoStore = require('connect-mongo')(express)
 
 settings = require('./configuration.json')
@@ -141,11 +142,30 @@ passport.use new FacebookStrategy settings.facebook, (accessToken, refreshToken,
 
 
 
+onlineList = []
+timeouts = {}
+
+setUserOffline = (socket, id) ->
+  _.remove onlineList, (online) ->
+    online.id is id
+
+  sendOfflineNotice socket, id
+
+sendOfflineNotice = (socket, id) ->
+  socket.emit 'offline', id
+  socket.broadcast.emit 'offline', id
+
+
+setUserOnline = (socket, data) ->
+  onlineList.push data
+  socket.emit 'online', data
+  socket.broadcast.emit 'online', data
+
 
 io.sockets.on 'connection', (socket) ->
 
-  socket.on 'load-chat-history', (data) ->
-    socket.emit 'chat-history', data
+  socket.on 'load-chat-history', ->
+    socket.emit 'chat-history', onlineList
 
   socket.on 'load-online-list', (data) ->
     socket.emit 'online-list', data
@@ -155,13 +175,28 @@ io.sockets.on 'connection', (socket) ->
     socket.emit 'message', data
     socket.broadcast.emit 'message', data
 
+    if timeouts[data.from.id]
+      clearTimeout timeouts[data.from.id]
+
+    timeouts[data.from.id] = setTimeout ->
+      setUserOffline socket, data.from.id
+
+      delete timeouts[data.from.id]
+
+    , 300000 # five minutes
+
+    userOnline = _.find onlineList, (online) ->
+      online.id is data.from.id
+
+    if !userOnline
+      setUserOnline socket, data.from
+
+
   socket.on 'online', (data) ->
-    socket.emit 'online', data
-    socket.broadcast.emit 'online', data
+    setUserOnline socket, data
 
   socket.on 'offline', (data) ->
-    socket.emit 'offline', data
-    socket.broadcast.emit 'offline', data
+    setUserOffline socket, data.id
 
 
 

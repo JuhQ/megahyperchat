@@ -10,11 +10,14 @@ app.directive 'chat', (socketService, emojiService) ->
     $scope.startsWith = (state, viewValue) ->
       state.substr(0, viewValue.length) is viewValue
 
-    fromRandom = ->
-      {name: "random man #{_.random(1,2000)}", id: _.random(1,2000)}
+    randomUserId = _.random(1,2000)
+    socketService.setOnline {name: "Random #{randomUserId}", id: randomUserId}
 
-    for i in [0..1]
-      socketService.sendMessage {message: "hello world, random :curly_loop: message #{_.random(1,10000)}", from: fromRandom()}
+    fromRandom = ->
+      {name: "random man #{randomUserId}", id: randomUserId}
+
+    #for i in [0..1]
+    #  socketService.sendMessage {message: "hello world, random :curly_loop: message #{_.random(1,10000)}", from: fromRandom()}
 
     socketService.on 'message', (data) =>
       $scope.messages.push data

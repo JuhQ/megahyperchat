@@ -4,25 +4,27 @@ app.directive 'online', (socketService) ->
   link: ($scope, el, attrs) ->
     $scope.online = []
 
+    socketService.getOnlineList()
+
+    socketService.on 'chat-history', (data) =>
+      $scope.online = data or []
+      $scope.$apply()
+
     socketService.on 'online', (data) =>
       $scope.online.push data
       $scope.$apply()
 
 
-    socketService.on 'offline', (data) =>
+    socketService.on 'offline', (id) =>
       _.remove $scope.online, (online) ->
-        data.id is online.id
+        id is online.id
       $scope.$apply()
 
-
-    for i in [1..10]
-      socketService.setOnline {name: "Random online #{_.random(1,200)}", id: _.random(1,200)}
-
-    setInterval ->
-      socketService.setOnline {name: "Random #{_.random(1,200)}", id: _.random(1,200)}
-    , 15000
+    #setInterval ->
+    #  socketService.setOnline {name: "Random #{_.random(1,200)}", id: _.random(1,200)}
+    #, 15000
 
 
-    setInterval ->
-      socketService.setOffline _.random(1,200)
-    , 1500
+    #setInterval ->
+    #  socketService.setOffline _.random(1,200)
+    #, 1500

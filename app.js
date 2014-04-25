@@ -1,4 +1,4 @@
-var FacebookStrategy, MongoStore, app, express, http, io, mongoStore, mongoconfig, mongoose, passport, path, routes, server, settings;
+var FacebookStrategy, MongoStore, app, express, http, io, mongoStore, mongoconfig, mongoose, onlineList, passport, path, routes, sendOfflineNotice, server, setUserOffline, setUserOnline, settings, timeouts, _;
 
 express = require("express");
 
@@ -13,6 +13,8 @@ passport = require("passport");
 FacebookStrategy = require("passport-facebook").Strategy;
 
 mongoose = require('mongoose');
+
+_ = require('lodash');
 
 MongoStore = require('connect-mongo')(express);
 
@@ -163,25 +165,59 @@ passport.use(new FacebookStrategy(settings.facebook, function(accessToken, refre
   });
 }));
 
+onlineList = [];
+
+timeouts = {};
+
+setUserOffline = function(socket, id) {
+  _.remove(onlineList, function(online) {
+    return online.id === id;
+  });
+  return sendOfflineNotice(socket, id);
+};
+
+sendOfflineNotice = function(socket, id) {
+  socket.emit('offline', id);
+  return socket.broadcast.emit('offline', id);
+};
+
+setUserOnline = function(socket, data) {
+  onlineList.push(data);
+  socket.emit('online', data);
+  return socket.broadcast.emit('online', data);
+};
+
 io.sockets.on('connection', function(socket) {
-  socket.on('load-chat-history', function(data) {
-    return socket.emit('chat-history', data);
+  socket.on('load-chat-history', function() {
+    return socket.emit('chat-history', onlineList);
   });
   socket.on('load-online-list', function(data) {
     return socket.emit('online-list', data);
   });
   socket.on('message', function(data) {
+    var userOnline;
     data.date = new Date();
     socket.emit('message', data);
-    return socket.broadcast.emit('message', data);
+    socket.broadcast.emit('message', data);
+    if (timeouts[data.from.id]) {
+      clearTimeout(timeouts[data.from.id]);
+    }
+    timeouts[data.from.id] = setTimeout(function() {
+      setUserOffline(socket, data.from.id);
+      return delete timeouts[data.from.id];
+    }, 300000);
+    userOnline = _.find(onlineList, function(online) {
+      return online.id === data.from.id;
+    });
+    if (!userOnline) {
+      return setUserOnline(socket, data.from);
+    }
   });
   socket.on('online', function(data) {
-    socket.emit('online', data);
-    return socket.broadcast.emit('online', data);
+    return setUserOnline(socket, data);
   });
   return socket.on('offline', function(data) {
-    socket.emit('offline', data);
-    return socket.broadcast.emit('offline', data);
+    return setUserOffline(socket, data.id);
   });
 });
 

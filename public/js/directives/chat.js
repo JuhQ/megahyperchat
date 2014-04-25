@@ -3,7 +3,7 @@ app.directive('chat', function(socketService, emojiService) {
     restrict: 'E',
     templateUrl: 'chat.html',
     link: function($scope, el, attrs) {
-      var fromRandom, i, scrollhere, _i,
+      var fromRandom, randomUserId, scrollhere,
         _this = this;
       $scope.messages = [];
       $scope.emojis = emojiService.getList();
@@ -11,18 +11,17 @@ app.directive('chat', function(socketService, emojiService) {
       $scope.startsWith = function(state, viewValue) {
         return state.substr(0, viewValue.length) === viewValue;
       };
+      randomUserId = _.random(1, 2000);
+      socketService.setOnline({
+        name: "Random " + randomUserId,
+        id: randomUserId
+      });
       fromRandom = function() {
         return {
-          name: "random man " + (_.random(1, 2000)),
-          id: _.random(1, 2000)
+          name: "random man " + randomUserId,
+          id: randomUserId
         };
       };
-      for (i = _i = 0; _i <= 1; i = ++_i) {
-        socketService.sendMessage({
-          message: "hello world, random :curly_loop: message " + (_.random(1, 10000)),
-          from: fromRandom()
-        });
-      }
       socketService.on('message', function(data) {
         $scope.messages.push(data);
         $scope.$apply();

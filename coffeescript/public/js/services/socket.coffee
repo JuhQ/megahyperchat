@@ -6,6 +6,9 @@ app.factory 'socketService', ->
   sendMessage: (data) ->
     socket.emit 'message', data
 
+  getOnlineList: ->
+    socket.emit 'load-chat-history'
+
   setOnline: (data) ->
     socket.emit 'online', data
 

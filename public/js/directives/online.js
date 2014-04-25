@@ -3,34 +3,23 @@ app.directive('online', function(socketService) {
     restrict: 'E',
     templateUrl: 'online.html',
     link: function($scope, el, attrs) {
-      var i, _i,
-        _this = this;
+      var _this = this;
       $scope.online = [];
+      socketService.getOnlineList();
+      socketService.on('chat-history', function(data) {
+        $scope.online = data || [];
+        return $scope.$apply();
+      });
       socketService.on('online', function(data) {
         $scope.online.push(data);
         return $scope.$apply();
       });
-      socketService.on('offline', function(data) {
+      return socketService.on('offline', function(id) {
         _.remove($scope.online, function(online) {
-          return data.id === online.id;
+          return id === online.id;
         });
         return $scope.$apply();
       });
-      for (i = _i = 1; _i <= 10; i = ++_i) {
-        socketService.setOnline({
-          name: "Random online " + (_.random(1, 200)),
-          id: _.random(1, 200)
-        });
-      }
-      setInterval(function() {
-        return socketService.setOnline({
-          name: "Random " + (_.random(1, 200)),
-          id: _.random(1, 200)
-        });
-      }, 15000);
-      return setInterval(function() {
-        return socketService.setOffline(_.random(1, 200));
-      }, 1500);
     }
   };
 });

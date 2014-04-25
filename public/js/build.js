@@ -22,7 +22,7 @@ app.run();
     restrict: 'E',
     templateUrl: 'chat.html',
     link: function($scope, el, attrs) {
-      var fromRandom, i, scrollhere, _i,
+      var fromRandom, randomUserId, scrollhere,
         _this = this;
       $scope.messages = [];
       $scope.emojis = emojiService.getList();
@@ -30,18 +30,17 @@ app.run();
       $scope.startsWith = function(state, viewValue) {
         return state.substr(0, viewValue.length) === viewValue;
       };
+      randomUserId = _.random(1, 2000);
+      socketService.setOnline({
+        name: "Random " + randomUserId,
+        id: randomUserId
+      });
       fromRandom = function() {
         return {
-          name: "random man " + (_.random(1, 2000)),
-          id: _.random(1, 2000)
+          name: "random man " + randomUserId,
+          id: randomUserId
         };
       };
-      for (i = _i = 0; _i <= 1; i = ++_i) {
-        socketService.sendMessage({
-          message: "hello world, random :curly_loop: message " + (_.random(1, 10000)),
-          from: fromRandom()
-        });
-      }
       socketService.on('message', function(data) {
         $scope.messages.push(data);
         $scope.$apply();
@@ -94,34 +93,23 @@ app.run();
     restrict: 'E',
     templateUrl: 'online.html',
     link: function($scope, el, attrs) {
-      var i, _i,
-        _this = this;
+      var _this = this;
       $scope.online = [];
+      socketService.getOnlineList();
+      socketService.on('chat-history', function(data) {
+        $scope.online = data || [];
+        return $scope.$apply();
+      });
       socketService.on('online', function(data) {
         $scope.online.push(data);
         return $scope.$apply();
       });
-      socketService.on('offline', function(data) {
+      return socketService.on('offline', function(id) {
         _.remove($scope.online, function(online) {
-          return data.id === online.id;
+          return id === online.id;
         });
         return $scope.$apply();
       });
-      for (i = _i = 1; _i <= 10; i = ++_i) {
-        socketService.setOnline({
-          name: "Random online " + (_.random(1, 200)),
-          id: _.random(1, 200)
-        });
-      }
-      setInterval(function() {
-        return socketService.setOnline({
-          name: "Random " + (_.random(1, 200)),
-          id: _.random(1, 200)
-        });
-      }, 15000);
-      return setInterval(function() {
-        return socketService.setOffline(_.random(1, 200));
-      }, 1500);
     }
   };
 });
@@ -150,6 +138,9 @@ app.run();
   return {
     sendMessage: function(data) {
       return socket.emit('message', data);
+    },
+    getOnlineList: function() {
+      return socket.emit('load-chat-history');
     },
     setOnline: function(data) {
       return socket.emit('online', data);

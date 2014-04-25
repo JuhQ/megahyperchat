@@ -6,6 +6,9 @@ app.factory('socketService', function() {
     sendMessage: function(data) {
       return socket.emit('message', data);
     },
+    getOnlineList: function() {
+      return socket.emit('load-chat-history');
+    },
     setOnline: function(data) {
       return socket.emit('online', data);
     },
