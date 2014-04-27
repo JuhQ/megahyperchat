@@ -2,7 +2,7 @@ angular.module('app').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('chat.html',
-    "<div class=\"row placeholders\" ng-hide=\"true\"><div class=\"col-xs-5 col-sm-2 placeholder\" ng-repeat=\"i in getNumber(6) track by $index\"><img src=\"http://placekitten.com/100/100\" class=\"img-responsive img-circle\" alt=\"Generic thumbnail\"><h4>Ahmed</h4><span class=\"text-muted\">Single, 27 years</span></div></div><h2>Chat</h2><div class=\"table-responsive\"><table class=\"table table-striped\"><tbody><tr ng-repeat=\"message in messages\"><td class=\"col-xs-2 col-sm-2 message-from\"><img ng-src=\"https://graph.facebook.com/{{message.from.id}}/picture\" class=\"img-circle\"> {{message.from.name}}</td><td class=\"col-xs-10 col-sm-10\"><message>{{message.message}}</message></td></tr></tbody></table><div id=\"scrollhere\"></div></div>"
+    "<div class=\"row placeholders\" ng-hide=\"true\"><div class=\"col-xs-5 col-sm-2 placeholder\" ng-repeat=\"i in getNumber(6) track by $index\"><img src=\"http://placekitten.com/100/100\" class=\"img-responsive img-circle\" alt=\"Generic thumbnail\"><h4>Ahmed</h4><span class=\"text-muted\">Single, 27 years</span></div></div><h2>Chat</h2><div class=\"table-responsive\"><table class=\"table table-striped\"><tbody><tr ng-repeat=\"message in messages\"><td class=\"col-xs-2 col-sm-2 message-from\"><a href=\"/profile/{{message.from.id}}\"><img ng-src=\"https://graph.facebook.com/{{message.from.id}}/picture\" class=\"img-circle\"></a></td><td class=\"col-xs-10 col-sm-10\"><message>{{message.message}}</message></td></tr></tbody></table><div id=\"scrollhere\"></div></div>"
   );
 
 
@@ -15,7 +15,17 @@ angular.module('app').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('online.html',
-    "<ul class=\"nav nav-sidebar online-list\"><li><strong>Online ({{online.length}})</strong></li><li ng-repeat=\"user in online\"><a href=\"\"><img ng-src=\"https://graph.facebook.com/{{user.id}}/picture\" class=\"img-circle\"> {{user.name}}</a></li></ul>"
+    "<ul class=\"nav nav-sidebar online-list\"><li><strong>Online ({{online.length}})</strong></li><li ng-repeat=\"user in online\"><a href=\"/profile/{{user.id}}\"><img ng-src=\"https://graph.facebook.com/{{user.id}}/picture\" class=\"img-circle\"> {{user.name}}</a></li></ul>"
+  );
+
+
+  $templateCache.put('profile.html',
+    "profile.html {{profile}}<rate profile=\"profile\"></rate>"
+  );
+
+
+  $templateCache.put('rate.html',
+    "<div class=\"well\"><span class=\"rating\"><span class=\"star\" ng-click=\"vote($index)\" ng-repeat=\"i in getNumber(5) track by $index\"></span></span></div>"
   );
 
 }]);

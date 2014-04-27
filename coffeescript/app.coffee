@@ -48,6 +48,10 @@ app.get "/login/success", routes.loginSuccess
 app.get "/login/fail", routes.loginFail
 
 
+app.get "/api/profile/:id", routes.getUser
+app.get "/api/loggedin", routes.getLoggedUser
+
+
 # Redirect the user to Facebook for authentication.  When complete,
 # Facebook will redirect the user back to the application at
 #     /auth/facebook/callback
@@ -62,6 +66,10 @@ app.get "/auth/facebook/callback", passport.authenticate("facebook",
   successRedirect: "/login/success"
   failureRedirect: "/login/fail"
 )
+
+
+
+app.get '/:foo*', routes.index
 
 
 passport.serializeUser (user, done) ->
@@ -157,9 +165,29 @@ sendOfflineNotice = (socket, id) ->
 
 
 setUserOnline = (socket, data) ->
-  onlineList.push data
-  socket.emit 'online', data
-  socket.broadcast.emit 'online', data
+
+  userOnline = _.find onlineList, (online) ->
+    online.id is data.id
+
+  if !userOnline
+    onlineList.push data
+  
+    socket.emit 'online', data
+    socket.broadcast.emit 'online', data
+
+    setUserOfflineTimeout socket, data.id
+
+setUserOfflineTimeout = (socket, id) ->
+
+  if timeouts[id]
+    clearTimeout timeouts[id]
+
+  timeouts[id] = setTimeout ->
+    setUserOffline socket, id
+
+    delete timeouts[id]
+
+  , 300000 # five minutes
 
 
 io.sockets.on 'connection', (socket) ->
@@ -175,21 +203,8 @@ io.sockets.on 'connection', (socket) ->
     socket.emit 'message', data
     socket.broadcast.emit 'message', data
 
-    if timeouts[data.from.id]
-      clearTimeout timeouts[data.from.id]
-
-    timeouts[data.from.id] = setTimeout ->
-      setUserOffline socket, data.from.id
-
-      delete timeouts[data.from.id]
-
-    , 300000 # five minutes
-
-    userOnline = _.find onlineList, (online) ->
-      online.id is data.from.id
-
-    if !userOnline
-      setUserOnline socket, data.from
+    setUserOnline socket, data.from
+    setUserOfflineTimeout socket, data.from.id
 
 
   socket.on 'online', (data) ->

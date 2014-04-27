@@ -1,4 +1,4 @@
-app.controller 'index', ($scope, socketService) ->
+app.controller 'index', ($scope) ->
 
   $scope.getNumber = (num) ->
     new Array(num)

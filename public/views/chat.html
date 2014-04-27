@@ -19,8 +19,7 @@
       <tr ng-repeat="message in messages">
         
         <td class="col-xs-2 col-sm-2 message-from">
-          <img ng-src="https://graph.facebook.com/{{message.from.id}}/picture" class="img-circle" />
-          {{message.from.name}}
+          <a href="/profile/{{message.from.id}}"><img ng-src="https://graph.facebook.com/{{message.from.id}}/picture" class="img-circle" /></a>
         </td>
         <td class="col-xs-10 col-sm-10">
           <message>{{message.message}}</message>

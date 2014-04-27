@@ -1,4 +1,4 @@
-var FacebookStrategy, MongoStore, app, express, http, io, mongoStore, mongoconfig, mongoose, onlineList, passport, path, routes, sendOfflineNotice, server, setUserOffline, setUserOnline, settings, timeouts, _;
+var FacebookStrategy, MongoStore, app, express, http, io, mongoStore, mongoconfig, mongoose, onlineList, passport, path, routes, sendOfflineNotice, server, setUserOffline, setUserOfflineTimeout, setUserOnline, settings, timeouts, _;
 
 express = require("express");
 
@@ -64,6 +64,10 @@ app.get("/login/success", routes.loginSuccess);
 
 app.get("/login/fail", routes.loginFail);
 
+app.get("/api/profile/:id", routes.getUser);
+
+app.get("/api/loggedin", routes.getLoggedUser);
+
 app.get("/auth/facebook", passport.authenticate("facebook", {
   scope: ['email', 'user_birthday']
 }));
@@ -72,6 +76,8 @@ app.get("/auth/facebook/callback", passport.authenticate("facebook", {
   successRedirect: "/login/success",
   failureRedirect: "/login/fail"
 }));
+
+app.get('/:foo*', routes.index);
 
 passport.serializeUser(function(user, done) {
   return done(null, user.id);
@@ -182,9 +188,26 @@ sendOfflineNotice = function(socket, id) {
 };
 
 setUserOnline = function(socket, data) {
-  onlineList.push(data);
-  socket.emit('online', data);
-  return socket.broadcast.emit('online', data);
+  var userOnline;
+  userOnline = _.find(onlineList, function(online) {
+    return online.id === data.id;
+  });
+  if (!userOnline) {
+    onlineList.push(data);
+    socket.emit('online', data);
+    socket.broadcast.emit('online', data);
+    return setUserOfflineTimeout(socket, data.id);
+  }
+};
+
+setUserOfflineTimeout = function(socket, id) {
+  if (timeouts[id]) {
+    clearTimeout(timeouts[id]);
+  }
+  return timeouts[id] = setTimeout(function() {
+    setUserOffline(socket, id);
+    return delete timeouts[id];
+  }, 300000);
 };
 
 io.sockets.on('connection', function(socket) {
@@ -195,23 +218,11 @@ io.sockets.on('connection', function(socket) {
     return socket.emit('online-list', data);
   });
   socket.on('message', function(data) {
-    var userOnline;
     data.date = new Date();
     socket.emit('message', data);
     socket.broadcast.emit('message', data);
-    if (timeouts[data.from.id]) {
-      clearTimeout(timeouts[data.from.id]);
-    }
-    timeouts[data.from.id] = setTimeout(function() {
-      setUserOffline(socket, data.from.id);
-      return delete timeouts[data.from.id];
-    }, 300000);
-    userOnline = _.find(onlineList, function(online) {
-      return online.id === data.from.id;
-    });
-    if (!userOnline) {
-      return setUserOnline(socket, data.from);
-    }
+    setUserOnline(socket, data.from);
+    return setUserOfflineTimeout(socket, data.from.id);
   });
   socket.on('online', function(data) {
     return setUserOnline(socket, data);

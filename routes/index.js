@@ -35,3 +35,31 @@ exports.removeAccount = function(req, res) {
     });
   }
 };
+
+exports.getUser = function(req, res) {
+  var Users, mongoose;
+  if (!req.params.id) {
+    return res.jsonp({
+      nope: 1
+    });
+  }
+  mongoose = require('mongoose');
+  Users = mongoose.model('users');
+  return Users.findOne().where('id').equals(req.params.id).select('id name').exec(function(err, data) {
+    return res.jsonp(data);
+  });
+};
+
+exports.getLoggedUser = function(req, res) {
+  var Users, mongoose;
+  if (!req.user) {
+    return res.jsonp({
+      nope: 1
+    });
+  }
+  mongoose = require('mongoose');
+  Users = mongoose.model('users');
+  return Users.findOne().where('id').equals(Number(req.user)).select('id name').exec(function(err, data) {
+    return res.jsonp(data);
+  });
+};
